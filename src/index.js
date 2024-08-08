@@ -258,10 +258,10 @@ root.render(
           <Route path="/Attendance" element={<AttendanceHome/>}/>
           <Route path="/AssetsTable" element={<AssetsTable />}></Route>
           <Route path="/EarnDeductTable" element={<EarnDeductTable />}></Route>
-          <Route path="/PaymBranchtable" element={<PaymBranchtable />}></Route>
+          {/* <Route path="/PaymBranchtable" element={<PaymBranchtable />}></Route> */}
           <Route path="/SpreadGrid" element={<MySpreadGrid/>}></Route>
           <Route path="/ResponsiveTable" element={<ResponsiveTable/>}></Route>
-          <Route path="/PaymBranchtable" element={<PaymBranchtable />}></Route>
+          {/* <Route path="/PaymBranchtable" element={<PaymBranchtable />}></Route> */}
           <Route path="/SlabTemplateEmp" element={<SlabTemplateEmp/>}/>
           <Route path="/RTN" element={<OverTimeGrid/>}/>
           <Route
