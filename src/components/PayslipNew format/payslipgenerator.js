@@ -7,6 +7,8 @@ import {
   Box,
   CardContent,
   FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { PAYMPAYBILL } from "../../serverconfiguration/controllers";
@@ -20,8 +22,7 @@ export default function PayslipGenerator() {
   const [pnEmployeeId, setPnEmployeeId] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [dDate, setDdate] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+
   const navigate = useNavigate();
 
   const margin = { margin: "0 5px" };
@@ -40,7 +41,7 @@ export default function PayslipGenerator() {
     );
     navigate("payslipmonthly", {
       state: {
-        paym
+        paym,
       },
     });
   };
@@ -50,42 +51,70 @@ export default function PayslipGenerator() {
       <Grid style={{ padding: "80px 5px0 5px" }}>
         <Card style={{ maxWidth: 600, margin: "0 auto" }}>
           <CardContent>
-            <Typography variant="h5" color="S- Light" align="center">
-              Generate New Payslip
+            <Typography variant="h5" color="S- Light" align="center" gutterBottom>
+              Generate Payslip
             </Typography>
             <form>
-              <Grid
-                container
-                spacing={2}
-                inputlabelprops={{ shrink: true }}
-                style={{ marginTop: "20px" }}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel shrink>EmployeeId</InputLabel>
-                    <select
-                      name="pnEmployeeId"
-                      onChange={(e) => {
-                        setPnEmployeeId(e.target.value);
+            <Grid
+  container
+  spacing={2}
+  justifyContent="center"
+  alignItems="center"
+  direction="column"
+>
+
+                <Grid item xs={12} sm={12}>
+                  <div style={{ width: "300px", position: "relative" }}>
+                    <label
+                      htmlFor="pnEmployeeId"
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        left: "10px",
+                        backgroundColor: "white",
+                        padding: "0 4px",
+                        zIndex: 1,
                       }}
-                      style={{ height: "50px" }}>
+                    >
+                      EmployeeId
+                    </label>
+                    <select
+                      id="pnEmployeeId"
+                      name="pnEmployeeId"
+                      onChange={(e) => setPnEmployeeId(e.target.value)}
+                      style={{ height: "50px", width: "100%", padding: "10px" }}
+                    >
                       <option value="">Select</option>
                       {paympaybills.map((e) => (
-                        <option>{e.pnEmployeeId}</option>
+                        <option key={e.pnEmployeeId} value={e.pnEmployeeId}>
+                          {e.pnEmployeeId}
+                        </option>
                       ))}
                     </select>
-                  </FormControl>
+                  </div>
                 </Grid>
 
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <InputLabel shrink>EmployeeCode</InputLabel>
-                    <select
-                      name="employeeCode"
-                      onChange={(e) => {
-                        setEmployeeCode(e.target.value);
+                <Grid item xs={12} sm={12}>
+                  <div style={{ width: "300px", position: "relative" }}>
+                    <label
+                      htmlFor="employeeCode"
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        left: "10px",
+                        backgroundColor: "white",
+                        padding: "0 4px",
+                        zIndex: 1,
                       }}
-                      style={{ height: "50px" }}
-                      inputlabelprops={{ shrink: true }}>
+                    >
+                      EmployeeCode
+                    </label>
+                    <select
+                      id="employeeCode"
+                      name="employeeCode"
+                      onChange={(e) => setEmployeeCode(e.target.value)}
+                      style={{ height: "50px", width: "100%", padding: "10px" }}
+                    >
                       <option value="">Select</option>
                       {paympaybills
                         .filter((e) => e.pnEmployeeId == pnEmployeeId)
@@ -93,19 +122,30 @@ export default function PayslipGenerator() {
                           <option>{e.employeeCode}</option>
                         ))}
                     </select>
-                  </FormControl>
+                  </div>
                 </Grid>
 
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <InputLabel shrink>dDate</InputLabel>
-                    <select
-                      name="dDate"
-                      onChange={(e) => {
-                        setDdate(e.target.value);
+                <Grid item xs={12} sm={12}>
+                  <div style={{ width: "300px", position: "relative" }}>
+                    <label
+                      htmlFor="dDate"
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        left: "10px",
+                        backgroundColor: "white",
+                        padding: "0 4px",
+                        zIndex: 1,
                       }}
-                      style={{ height: "50px" }}
-                      inputlabelprops={{ shrink: true }}>
+                    >
+                      dDate
+                    </label>
+                    <select
+                      id="dDate"
+                      name="dDate"
+                      onChange={(e) => setDdate(e.target.value)}
+                      style={{ height: "50px", width: "100%", padding: "10px" }}
+                    >
                       <option value="">Select</option>
                       {paympaybills
                         .filter(
@@ -117,35 +157,7 @@ export default function PayslipGenerator() {
                           <option>{e.dDate}</option>
                         ))}
                     </select>
-                  </FormControl>
-                </Grid>
-
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="Month"
-                      label="Month"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setMonth(e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </FormControl>
-                </Grid>
-
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="Year"
-                      label="Year"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setYear(e.target.value)}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </FormControl>
+                  </div>
                 </Grid>
               </Grid>
               <Grid container spacing={1} paddingTop={"10px"}>
@@ -154,13 +166,17 @@ export default function PayslipGenerator() {
                     style={margin}
                     type="reset"
                     variant="outlined"
-                    color="primary">
+                    color="primary"
+                    size="small"
+                  >
                     RESET
                   </Button>
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={handlesave}>
+                    onClick={handlesave}
+                    size="small"
+                  >
                     Generate
                   </Button>
                 </Grid>

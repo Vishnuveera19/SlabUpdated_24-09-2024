@@ -17,15 +17,16 @@ import {
   Checkbox,
   Drawer,
   IconButton,
+  Button,
 } from "@mui/material";
-
 import MenuIcon from "@mui/icons-material/Menu";
-
-import { useState } from "react";
+import generatePDF from "react-to-pdf";
+import { useRef, useState } from "react";
 
 import { Fragment } from "react";
 
 export default function PaySlipFormTemplate(props) {
+  const targetRef = useRef();
   const [showName, setShowName] = useState(true);
   const [showDesignation, setShowDesignation] = useState(true);
   const [showcompanyname, setshowcompanyname] = useState(true);
@@ -39,54 +40,6 @@ export default function PaySlipFormTemplate(props) {
   const [payperiod, setpayperiod] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  const handleNameChange = (event) => {
-    setShowName(event.target.checked);
-  };
-
-  const handleDesignationChange = (event) => {
-    setShowDesignation(event.target.checked);
-  };
-
-  const handlecompanynamechange = (event) => {
-    setshowcompanyname(event.target.checked);
-  };
-
-  const handleadressname = (event) => {
-    setshowaddressname(event.target.checked);
-  };
-
-  const handlemonthname = (event) => {
-    setshowmonth(event.target.checked);
-  };
-
-  const handlerollno = (event) => {
-    setRollno(event.target.checked);
-  };
-
-  const handlelocation = (event) => {
-    setlocation(event.target.checked);
-  };
-
-  const handlefn = (event) => {
-    setfathersname(event.target.checked);
-  };
-
-  const handledoj = (event) => {
-    setdoj(event.target.checked);
-  };
-
-  const handledob = (event) => {
-    setdob(event.target.checked);
-  };
-
-  const handlepayperiod = (event) => {
-    setpayperiod(event.target.checked);
-  };
-
   const styleobj = {
     container: {
       fontSize: "14px",
@@ -94,6 +47,10 @@ export default function PaySlipFormTemplate(props) {
 
     card: {
       padding: "20px",
+      width: "793px", // Set the width to A4 size in pixels
+      height: "1425px", // Set the height to A4 size in pixels, 1122px is approximately 297mm
+      margin: "0 auto", // Center the card
+      boxSizing: "border-box" // Ensure padding and border are included in the width and height
     },
 
     header: {
@@ -141,165 +98,189 @@ export default function PaySlipFormTemplate(props) {
       fontSize: "20px",
     },
   };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const handleDrawerToggle = () => setDrawerOpen(!drawerOpen);
+
+  // Your existing handler functions
+  const handleNameChange = (event) => setShowName(event.target.checked);
+  const handleDesignationChange = (event) =>
+    setShowDesignation(event.target.checked);
+  const handlecompanynamechange = (event) =>
+    setshowcompanyname(event.target.checked);
+  const handleadressname = (event) => setshowaddressname(event.target.checked);
+  const handlemonthname = (event) => setshowmonth(event.target.checked);
+  const handlerollno = (event) => setRollno(event.target.checked);
+  const handlelocation = (event) => setlocation(event.target.checked);
+  const handledoj = (event) => setdoj(event.target.checked);
+  const handledob = (event) => setdob(event.target.checked);
+  const handlepayperiod = (event) => setpayperiod(event.target.checked);
+
   return (
+    <>
     <center>
-      <div style={styleobj.container}>
-        <IconButton
-          onClick={handleDrawerToggle}
-          style={{ marginLeft: "1200px" }}>
-          <Typography
-            variant="subtitle-1"
-            color={"black"}
-            style={{ fontSize: "18px" }}>
-            Preference
-          </Typography>
-          <MenuIcon color="blue" style={{ marginLeft: "5px" }} />
-        </IconButton>
-
-        <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerToggle}>
-          <Box width={250} role="presentation">
-            <Box mb={2} mt={2}>
-              <Typography variant="subtitle1" align="left" mt={1}>
-                Choose Headers
-              </Typography>
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="flex-start">
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showName}
-                      onChange={handleNameChange}
-                      name="showName"
-                    />
-                  }
-                  label="Name"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showDesignation}
-                      onChange={handleDesignationChange}
-                      name="showDesignation"
-                    />
-                  }
-                  label="Designation"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showcompanyname}
-                      onChange={handlecompanynamechange}
-                      name="showCompanyName"
-                    />
-                  }
-                  label="CompanyName"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showaddressname}
-                      onChange={handleadressname}
-                      name="showaddressName"
-                    />
-                  }
-                  label="AddressName"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={showmonth}
-                      onChange={handlemonthname}
-                      name="showMonthYearName"
-                    />
-                  }
-                  label="MonthYear"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={rollNo}
-                      onChange={handlerollno}
-                      name="showrollno"
-                    />
-                  }
-                  label="EmployeeCode"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={location1}
-                      onChange={handlelocation}
-                      name="showlocation"
-                    />
-                  }
-                  label="Location"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={fathersn}
-                      onChange={handlefn}
-                      name="showfathersn"
-                    />
-                  }
-                  label="Fathers Name"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={Dateofjoining}
-                      onChange={handledoj}
-                      name="showdoj"
-                    />
-                  }
-                  label="Date Of Joining"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={DateofBirth}
-                      onChange={handledob}
-                      name="showdob"
-                    />
-                  }
-                  label="Date Of Birth"
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={payperiod}
-                      onChange={handlepayperiod}
-                      name="showpayperiod"
-                    />
-                  }
-                  label="Pay Period"
-                />
-              </Box>
-            </Box>
-          </Box>
-        </Drawer>
+      <div style={styleobj.container} ref={targetRef}>
+     
         <Container maxWidth="md" style={styleobj.container}>
           <Card style={styleobj.card}>
+          <Box display="flex" justifyContent="flex-end">
+        <IconButton onClick={handleDrawerToggle} color="primary">
+          <Typography
+            variant="subtitle1"
+            color="textPrimary"
+            style={{ fontSize: "18px" }}
+          >
+            Preferences
+          </Typography>
+          <MenuIcon style={{ marginLeft: "5px" }} />
+        </IconButton>
+         </Box>
+        <Drawer
+          anchor="right"
+          open={drawerOpen}
+          onClose={handleDrawerToggle}
+          PaperProps={{
+            sx: {
+              width: 280,
+              padding: 2,
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: "#f5f5f5", // Light background for better contrast
+            },
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Choose Headers
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+
+          <Box display="flex" flexDirection="column" alignItems="flex-start">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showName}
+                  onChange={handleNameChange}
+                  name="showName"
+                />
+              }
+              label="Name"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showDesignation}
+                  onChange={handleDesignationChange}
+                  name="showDesignation"
+                />
+              }
+              label="Designation"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showcompanyname}
+                  onChange={handlecompanynamechange}
+                  name="showCompanyName"
+                />
+              }
+              label="Company Name"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showaddressname}
+                  onChange={handleadressname}
+                  name="showaddressName"
+                />
+              }
+              label="Address"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showmonth}
+                  onChange={handlemonthname}
+                  name="showMonth"
+                />
+              }
+              label="Month/Year"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={rollNo}
+                  onChange={handlerollno}
+                  name="showRollNo"
+                />
+              }
+              label="Employee Code"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={location1}
+                  onChange={handlelocation}
+                  name="showLocation"
+                />
+              }
+              label="Location"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={Dateofjoining}
+                  onChange={handledoj}
+                  name="showDoj"
+                />
+              }
+              label="Date Of Joining"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={DateofBirth}
+                  onChange={handledob}
+                  name="showDob"
+                />
+              }
+              label="Date Of Birth"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={payperiod}
+                  onChange={handlepayperiod}
+                  name="showPayPeriod"
+                />
+              }
+              label="Pay Period"
+            />
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+        </Drawer>
             <CardContent>
               <Box textAlign="left" marginLeft={"20px"} mb={2}>
                 {showcompanyname && (
                   <Typography
                     variant="h5"
                     color="primary"
-                    style={styleobj.head}>
-                    {props.header}
+                    style={styleobj.head}
+                  >
+                    {props.companyname}
                   </Typography>
                 )}
                 {showaddressname && (
-                  <Typography variant="subtitle1">{props.Address}</Typography>
+                  <Typography variant="subtitle1">
+                    {props.Address1}, {props.Address2}, {props.city},{" "}
+                    {props.zipcode}
+                  </Typography>
                 )}
                 <Divider style={styleobj.divider} />
               </Box>
@@ -308,14 +289,15 @@ export default function PaySlipFormTemplate(props) {
                   <Grid item xs={12}>
                     {showmonth && (
                       <Typography variant="h6" gutterBottom>
-                        Payslip for the month of {props.month}, 2020
+                        Payslip for the month of {props.Month}, 2020
                       </Typography>
                     )}
                     <Typography
                       variant="h6"
                       color="primary"
                       align="left"
-                      style={styleobj.emppaysummary}>
+                      style={styleobj.emppaysummary}
+                    >
                       EMPLOYEE PAY SUMMARY
                     </Typography>
                   </Grid>
@@ -324,7 +306,8 @@ export default function PaySlipFormTemplate(props) {
                       <Typography
                         variant="body1"
                         align="left"
-                        style={styleobj.typo}>
+                        style={styleobj.typo}
+                      >
                         <strong>Employee Name:</strong> {props.Name}
                       </Typography>
                     )}
@@ -332,8 +315,9 @@ export default function PaySlipFormTemplate(props) {
                       <Typography
                         variant="body1"
                         align="left"
-                        style={styleobj.typo}>
-                        <strong>Employee Code:</strong> {props.empno}
+                        style={styleobj.typo}
+                      >
+                        <strong>Employee Code:</strong> {props.EmpNo}
                       </Typography>
                     )}
                     {showDesignation && (
@@ -341,24 +325,22 @@ export default function PaySlipFormTemplate(props) {
                         <strong>Designation:</strong> {props.Designation}
                       </Typography>
                     )}
-                    {fathersn && (
-                      <Typography variant="body1" style={styleobj.typo}>
-                        <strong>FathersName:</strong> {props.Fathersname}
-                      </Typography>
-                    )}
+
                     {Dateofjoining && (
                       <Typography variant="body1" style={styleobj.typo}>
-                        <strong> Date of Joining:</strong> {props.Dateofjoining}
+                        <strong> Date of Joining:</strong>{" "}
+                        {formatDate(props.DateOfJoining)}
                       </Typography>
                     )}
                     {DateofBirth && (
                       <Typography variant="body1" style={styleobj.typo}>
-                        <strong> Date of Birth:</strong> {props.DOB}
+                        <strong> Date of Birth:</strong>{" "}
+                        {formatDate(props.DateOfBirth)}
                       </Typography>
                     )}
                     {payperiod && (
                       <Typography variant="body1" style={styleobj.typo}>
-                        <strong> Pay Period:</strong> {props.payperiod}
+                        <strong> Pay Period:</strong> {formatDate(props.ddate)}
                       </Typography>
                     )}
                     {location1 && (
@@ -372,11 +354,11 @@ export default function PaySlipFormTemplate(props) {
                       Employee Net Pay
                     </Typography>
                     <Typography variant="h6" style={styleobj.netpay}>
-                      <strong>₹{props.NetSalary}</strong>
+                      <strong>₹{props.NetSalaryPayable}</strong>
                     </Typography>
                     <Typography variant="body1" style={styleobj.body}>
-                      Paid Days: <strong>{props.paiddays}</strong> | LOP Days:{" "}
-                      <strong>{props.LOPdays}</strong>
+                      Paid Days: <strong>{props.Paiddays}</strong> | LOP Days:{" "}
+                      <strong>{props.Absentdays}</strong>
                     </Typography>
                   </Grid>
                 </Grid>
@@ -392,100 +374,38 @@ export default function PaySlipFormTemplate(props) {
                             <strong>Earnings</strong>
                           </TableCell>
                           <TableCell style={styleobj.tablecellhead}>
-                            <strong> Amount</strong>
+                            <strong>Amount</strong>
                           </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Basic</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.BasicCM}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>House Rent Allowance</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.HouseRentAllCM}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 2</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong> ₹{props.ConveyanceAllCM}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 3</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong> ₹{props.ChildrenAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 4</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 5</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 6</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 7</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 8</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 9</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Allowance 10</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.OtherAllowance}</strong>
-                          </TableCell>
-                        </TableRow>
-
+                        {[
+                          { name: "Basic", value: props.BasicMR },
+                          { name: props.Allowance1, value: props.Value1CM },
+                          { name: props.Allowance2, value: props.Value2CM },
+                          { name: props.Allowance3, value: props.Value3CM },
+                          { name: props.Allowance4, value: props.Value4CM },
+                          { name: props.Allowance5, value: props.Value5CM },
+                          { name: props.Allowance6, value: props.Value6CM },
+                          { name: props.Allowance7, value: props.Value7CM },
+                          { name: props.Allowance8, value: props.Value8CM },
+                          { name: props.Allowance9, value: props.Value9CM },
+                          { name: props.Allowance10, value: props.Value10CM },
+                        ]
+                          .filter(
+                            (item) =>
+                              item.name && item.value && item.value !== 0
+                          ) // Filter out rows with empty or zero values
+                          .map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell style={styleobj.tablecell}>
+                                <strong>{item.name}</strong>
+                              </TableCell>
+                              <TableCell style={styleobj.tablecell}>
+                                <strong>{item.value}</strong>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                         <TableRow>
                           <TableCell style={styleobj.tablecell}>
                             <strong>Gross Earnings</strong>
@@ -500,7 +420,8 @@ export default function PaySlipFormTemplate(props) {
 
                   <TableContainer
                     component={Paper}
-                    style={{ marginTop: "20px" }}>
+                    style={{ marginTop: "20px" }}
+                  >
                     <Table>
                       <TableHead>
                         <TableRow>
@@ -513,117 +434,98 @@ export default function PaySlipFormTemplate(props) {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>PF</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.ITtotal}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>ESI</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.PF}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 2</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 3</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 4</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 5</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 6</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 7</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 8</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 9</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>Deduction 10</strong>
-                          </TableCell>
-                          <TableCell style={styleobj.tablecell}>
-                            <strong>₹{props.TotalDeductions}</strong>
-                          </TableCell>
-                        </TableRow>
+                        {[
+                          { name: "PF", value: props.PF },
+                          { name: props.Deduction1, value: props.Value1total },
+                          {
+                            name: props.Deduction2,
+                            value: props.Deduction2total,
+                          },
+                          {
+                            name: props.Deduction3,
+                            value: props.Deduction3total,
+                          },
+                          {
+                            name: props.Deduction4,
+                            value: props.Deduction4total,
+                          },
+                          {
+                            name: props.Deduction5,
+                            value: props.Deduction5total,
+                          },
+                          {
+                            name: props.Deduction6,
+                            value: props.Deduction6total,
+                          },
+                          {
+                            name: props.Deduction7,
+                            value: props.Deduction7total,
+                          },
+                          {
+                            name: props.Deduction8,
+                            value: props.Deduction8total,
+                          },
+                          {
+                            name: props.Deduction9,
+                            value: props.Deduction9total,
+                          },
+                          {
+                            name: props.Deduction10,
+                            value: props.Deduction10total,
+                          },
+                        ]
+                          .filter(
+                            (item) =>
+                              item.name && item.value && item.value !== 0
+                          ) // Filter out rows with empty or zero values
+                          .map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell style={styleobj.tablecell}>
+                                <strong>{item.name}</strong>
+                              </TableCell>
+                              <TableCell style={styleobj.tablecell}>
+                                <strong>{item.value}</strong>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </TableContainer>
                 </Fragment>
                 <Box mt={4}>
                   <Typography variant="body1">
-                    NET PAY (Gross Earnings - Total Deductions) + Reimbursements
+                    NET PAY (Gross Earnings - Total Deductions)
                   </Typography>
-                  <Typography variant="h6">₹{props.NetSalary}</Typography>
+                  <Typography variant="h6">
+                    ₹{props.NetSalaryPayable}
+                  </Typography>
                   <Typography variant="body1">
-                    Total Net Payable: <strong>₹{props.NetSalary}</strong>{" "}
-                    (Rupees Forty-three thousand one hundred and fifty only)
+                    Total Net Payable: <strong>₹{props.NetSalary}</strong> (
+                    {props.NetSalaryPayableInWords} )
                   </Typography>
                 </Box>
                 <Divider sx={{ my: 4 }} />
-                <Typography variant="body2" align="center">
-                  - This is a system generated payslip -
-                </Typography>
               </Box>
             </CardContent>
           </Card>
         </Container>
       </div>
+      <Box
+  display="flex"
+  justifyContent="center"
+  alignItems="center"
+  mt={2}
+>
+<Button
+    variant="contained"
+    onClick={() => generatePDF(targetRef, { filename: "PayslipElegant.pdf", page:"A4" })}
+    size="small"
+    style={{ marginLeft: "5px" }}
+  >
+    Download Pdf
+  </Button>
+  </Box>
     </center>
+    </>
   );
 }

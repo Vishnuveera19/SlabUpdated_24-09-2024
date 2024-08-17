@@ -268,6 +268,10 @@ root.render(
             path="/PaymEmployeeForm"
             element={<PaymEmployeeForm />}/>
              <Route path="/PaymEmpTable" element={<PaymEmpTable />}></Route>
+             <Route path="/payslipgenerator" element={<PayslipGenerator />}></Route>
+             <Route path="/payslipgenerator/payslipmonthly" element={<Payslipmonthly />}></Route>
+             <Route path="/payslipelegant" element={<Payslipelegant />}></Route>
+             <Route path="/classic" element={<PayslipNewFormat/>}></Route>
           {/* <Route path="/layout" element={<Layoutcomp />} />
           <Route path="/att" element={<BasicDateCalendar />} />
           <Route path="/home" element={<ServiceCard />}></Route>

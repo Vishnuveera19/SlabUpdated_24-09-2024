@@ -6,32 +6,41 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { TextField } from '@mui/material';
-import { format } from 'date-fns';
+import { format, addMinutes } from 'date-fns';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { IconButton } from '@mui/material';
+import { PAYMCATEGORY } from '../../serverconfiguration/controllers';
 
-// Helper function to create a Date object with specific time
+
+// Utility function to create a Date object with specific time
 const createDateWithTime = (hours, minutes) => {
   const date = new Date();
-  date.setHours(hours);
-  date.setMinutes(minutes);
-  date.setSeconds(0);
-  date.setMilliseconds(0);
+  date.setHours(hours, minutes, 0, 0);
   return date;
 };
 
-const TimePickerCell = ({ value, onChange }) => {
+// TimePicker cell component
+const TimePickerCell = ({ value, onChange, disabled }) => {
+  const [internalValue, setInternalValue] = useState(value || createDateWithTime(0, 0));
+
+  const handleChange = (newValue) => {
+    setInternalValue(newValue);
+    onChange(newValue); // Notify parent of the change
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <TimePicker
-          value={value || createDateWithTime(0, 0)}
-          onChange={onChange}
-          renderInput={(params) => <TextField {...params} variant="standard" />}
-          ampm={false} // Use 24-hour format
-          views={['hours', 'minutes']}
-          format="HH:mm"
-          sx={{ width: '100%' }}
-        />
-      </div>
+      <TimePicker
+        value={internalValue}
+        onChange={handleChange}
+        renderInput={(params) => <TextField {...params} variant="standard" />}
+        ampm={false}
+        views={['hours', 'minutes']}
+        inputFormat="HH:mm"
+        mask="__:__"
+        sx={{ width: '100%' }}
+        disabled={disabled}
+      />
     </LocalizationProvider>
   );
 };
@@ -40,6 +49,12 @@ const StyledDataGrid = styled(DataGrid)({
   '& .MuiDataGrid-columnHeader': {
     backgroundColor: '#D3D3D3',
     color: '#000000',
+  },
+  '& .MuiDataGrid-cell:focus': {
+    outline: 'none', // Remove the default focus outline
+  },
+  '& .MuiDataGrid-columnHeader:focus': {
+    outline: 'none', // Remove the default focus outline for column headers
   },
   '& .MuiDataGrid-cell': {
     display: 'flex',
@@ -55,9 +70,8 @@ const StyledDataGrid = styled(DataGrid)({
   }
 });
 
-
 const initialRows = [
-  { id: 1, otFromDuration: createDateWithTime(0, 0), otToDuration: createDateWithTime(0, 0), otHours: null, otRate: null },
+  { id: 1, otFromDuration: createDateWithTime(0, 0), otToDuration: createDateWithTime(0, 0), otHours: "", otRate: "" },
 ];
 
 export default function OverTimeGrid() {
@@ -66,13 +80,79 @@ export default function OverTimeGrid() {
     pageSize: 5,
     page: 0
   });
+  const [isEditable, setIsEditable] = useState(true);
+  const[Category, setcategory] = useState([])
+  
+  useEffect(() => {
+    async function getData() {
+      const data = await getRequest(ServerConfig.url, PAYMCATEGORY);
+      setcategory(data.data);
+     
+    }
+    getData();
+  }, []);
 
-  const [otToDuration, setOtToDuration] = useState(createDateWithTime(0, 0));
-
-  const handleOtToDurationChange = (newValue) => {
-    setOtToDuration(newValue); // Update otToDuration correctly
+  // Handler for updating a row's value
+  const handleRowUpdate = (id, field, value) => {
+    setRows((prevRows) =>
+      prevRows.map((row) =>
+        row.id === id ? { ...row, [field]: value } : row
+      )
+    );
+    console.log('Updated Rows:', rows); // Ensure rows state is updated
   };
   
+
+  // Handler to add a new row
+  const addRow = () => {
+    // Ensure there is at least one row before accessing lastRow
+    const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+    
+    // If lastRow is null (no rows), set otFromDuration to a default value
+    const newOtFromDuration = lastRow ? addMinutes(lastRow.otToDuration, 1) : createDateWithTime(0, 0);
+  
+    const newRow = {
+      id: rows.length + 1,
+      otFromDuration: newOtFromDuration,
+      otToDuration: createDateWithTime(0, 0),
+      otHours: "",
+      otRate: ""
+    };
+  
+    setRows([...rows, newRow]);
+  };
+
+  const saveData = () => {
+    console.log('Data saved:', rows.map(row => ({
+      ...row,
+      otFromDuration: format(row.otFromDuration, 'HH:mm'),
+      otToDuration: format(row.otToDuration, 'HH:mm')
+    })));
+    setIsEditable(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditable(true);
+  };
+
+  const handleDeleteRow = (id) => {
+    const updatedRows = rows.filter((row) => row.id !== id);
+    
+    // Only update otFromDuration if there are remaining rows
+    const updatedRowsWithNewDurations = updatedRows.map((row, index) => {
+      if (index > 0) {
+        const prevRow = updatedRows[index - 1];
+        return {
+          ...row,
+          otFromDuration: addMinutes(prevRow.otToDuration, 1),
+        };
+      }
+      return row;
+    });
+    
+    setRows(updatedRowsWithNewDurations);
+  };
+
   const columns = [
     {
       field: 'otFromDuration',
@@ -82,11 +162,15 @@ export default function OverTimeGrid() {
       renderCell: (params) => (
         <TimePickerCell
           value={params.value}
-          onChange={(newValue) => params.api.setEditCellValue({ id: params.id, field: 'otFromDuration', value: newValue })}
+          onChange={(newValue) => {
+            handleRowUpdate(params.id, 'otFromDuration', newValue);
+          }}
+          disabled={!isEditable}
         />
       ),
       headerAlign: 'center',
-      align: 'center'
+      align: 'center',
+      editable: false
     },
     {
       field: 'otToDuration',
@@ -97,17 +181,15 @@ export default function OverTimeGrid() {
         <TimePickerCell
           value={params.value}
           onChange={(newValue) => {
-            handleOtToDurationChange(newValue); // Use the function here
-            const formattedTime = format(newValue, 'HH:mm');
-            console.log('OT To Duration Changed:', formattedTime); // Log formatted time
-            params.api.setEditCellValue({ id: params.id, field: 'otToDuration', value: newValue });
+            handleRowUpdate(params.id, 'otToDuration', newValue);
           }}
+          disabled={!isEditable}
         />
       ),
       headerAlign: 'center',
-      align: 'center'
+      align: 'center',
+      editable: false
     },
-    
     {
       field: 'otHours',
       headerName: 'OT Hours',
@@ -116,53 +198,70 @@ export default function OverTimeGrid() {
       renderCell: (params) => (
         <TimePickerCell
           value={params.value}
-          onChange={(newValue) => params.api.setEditCellValue({ id: params.id, field: 'otHours', value: newValue })}
+          onChange={(newValue) => {
+            handleRowUpdate(params.id, 'otHours', newValue);
+          }}
+          disabled={!isEditable}
         />
       ),
       headerAlign: 'center',
-      align: 'center'
+      align: 'center',
+      editable: false
     },
     {
       field: 'otRate',
       headerName: 'OT Rate',
       flex: 1,
-      type: "singleSelect",
+      type: 'singleSelect',
       valueOptions: ["1.0", "1.5", "2.0", "2.5", "3.0", "3.5"],
       minWidth: 120,
-      editable: true,
+      editable: false,
       headerAlign: 'center',
-      align: 'center'
+      align: 'center',
+      renderCell: (params) => (
+        <TextField
+        select
+        value={params.value || ''}
+        onChange={(event) => {
+          handleRowUpdate(params.id, 'otRate', event.target.value);
+        }}
+        disabled={!isEditable}
+        SelectProps={{
+          native: true,
+        }}
+      >
+        <option value="" disabled>Select rate</option> 
+        {["1.0", "1.5", "2.0", "2.5", "3.0", "3.5"].map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </TextField>
+      ),
     },
-  ];
-  
-
-  const addRow = () => {
-    // Ensure otToDuration is not null before using it
-    const currentOtToDuration = otToDuration || createDateWithTime(0, 0);
-    const formattedOtToDuration = format(currentOtToDuration, 'HH:mm');
-    console.log('Previous row otToDuration:', formattedOtToDuration);
-  
-    const newRow = {
-      id: rows.length + 1,
-      otFromDuration: createDateWithTime(0, 0),
-      otToDuration: createDateWithTime(0, 0), // Use the correct otToDuration
-      otHours: null,
-      otRate: null
-    };
+    {
+      field: 'actions',
+      headerName: '',
+      flex: 0.2,
+      minWidth: 40,
+      renderCell: (params) => (
+        <IconButton
+          variant="outlined"
+          color="error"
+          size="small"
+          onClick={() => handleDeleteRow(params.id)}
+        >
+          <DeleteIcon />
+        </IconButton>
+      ),
+      headerAlign: 'center',
+      align: 'center',
+    }
     
-    setRows([...rows, newRow]);
-    setOtToDuration(null); // Reset otToDuration for the new row
-  };
-  
-
-  const saveData = () => {
-    // Implement your save logic here
-    console.log('Data saved:', rows);
-    // Disable editing mode if necessary
-  };
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 370, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 200, width: '100%' }}>
       <div style={{ flex: 1 }}>
         <StyledDataGrid
           rows={rows}
@@ -172,14 +271,16 @@ export default function OverTimeGrid() {
           pageSizeOptions={[5, 10, 25]}
           autoHeight
           processRowUpdate={(newRow) => {
-            // Update rows with the new values
-            const updatedRows = rows.map(row => row.id === newRow.id ? { ...row, ...newRow } : row);
-            setRows(updatedRows);
+            console.log('Row being updated:', newRow);
+            handleRowUpdate(newRow.id, newRow.field, newRow.value);
             return newRow;
+          }}
+          onCellEditCommit={(params) => {
+            console.log('Cell edited:', params.row.id, params.field, params.value);
           }}
         />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+      <div style={{ marginTop: 5, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
           color="primary"
@@ -194,8 +295,17 @@ export default function OverTimeGrid() {
           color="primary"
           size="small"
           onClick={saveData}
+          style={{ marginRight: 8 }}
         >
           Save
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          size="small"
+          onClick={handleEdit}
+        >
+          Edit
         </Button>
       </div>
     </div>

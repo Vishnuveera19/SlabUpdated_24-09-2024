@@ -6,6 +6,7 @@ import Sidenav from '../Home Page/Sidenav';
 import Navbar from '../Home Page/Navbar';
 import OverTime from '../Responsive-Tables/ResponsiveTable';
 import OverTimeGrid from '../Responsive-Tables/ResponsiveTableNew';
+import PtGrid from '../Responsive-Tables/Proftaxgrid';
 
 
 
@@ -53,7 +54,7 @@ const initialRows = [
 
 
 const sampleTables = {
-    apply: <OverTimeGrid />,
+    apply: <PtGrid />,
     pending: <OverTimeGrid/>,
     history: <OverTimeGrid/>,
     AttBonus: <OverTimeGrid/>,

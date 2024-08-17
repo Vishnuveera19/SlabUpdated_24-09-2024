@@ -13,21 +13,19 @@ import {
   IconButton,
   Drawer,
   FormControlLabel,
+  Divider, Button
 } from "@mui/material";
 
-import { useState } from "react";
-
+import { useEffect, useState, useRef } from "react";
+import generatePDF from "react-to-pdf";
 import MenuIcon from "@mui/icons-material/Menu";
 
 export default function PaySlipTemplate(props) {
+  const targetRef = useRef();
   const [showName, setShowName] = useState(true);
-  const [showDesignation, setShowDesignation] = useState(true);
   const [showcompanyname, setshowcompanyname] = useState(true);
-  const [showaddressname, setshowaddressname] = useState(true);
   const [showmonth, setshowmonth] = useState(true);
   const [rollNo, setRollno] = useState(true);
-  const [location1, setlocation] = useState(true);
-  const [fathersn, setfathersname] = useState(true);
   const [monthofpay, setMonthofpay] = useState(true);
   const [dateofbirth, setDateofbirth] = useState(true);
   const [dateofjoining, setDateofjoining] = useState(true);
@@ -40,81 +38,29 @@ export default function PaySlipTemplate(props) {
   const [weekOffDays, setWeekoffdays] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setDrawerOpen(!drawerOpen);
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
-  const handleNameChange = (event) => {
-    setShowName(event.target.checked);
-  };
-
-  const handleDesignationChange = (event) => {
-    setShowDesignation(event.target.checked);
-  };
-
-  const handlecompanynamechange = (event) => {
-    setshowcompanyname(event.target.checked);
-  };
-
-  const handleadressname = (event) => {
-    setshowaddressname(event.target.checked);
-  };
-
-  const handlemonthname = (event) => {
-    setshowmonth(event.target.checked);
-  };
-
-  const handlerollno = (event) => {
-    setRollno(event.target.checked);
-  };
-
-  const handlelocation = (event) => {
-    setlocation(event.target.checked);
-  };
-
-  const handlefn = (event) => {
-    setfathersname(event.target.checked);
-  };
-
-  const handlemonthofpay = (event) => {
-    setMonthofpay(event.target.checked);
-  };
-
-  const handledob = (event) => {
-    setDateofbirth(event.target.checked);
-  };
-
-  const handledoj = (event) => {
-    setDateofjoining(event.target.checked);
-  };
-
-  const handlecalcdays = (event) => {
-    setCalcdays(event.target.checked);
-  };
-
-  const handlepaiddays = (event) => {
-    setPaiddays(event.target.checked);
-  };
-
-  const handleprsdays = (event) => {
-    setPrsdays(event.target.checked);
-  };
-
-  const handleAbsdays = (event) => {
-    setAbsentdays(event.target.checked);
-  };
-
-  const handleleavedays = (event) => {
-    setLeavedays(event.target.checked);
-  };
-
-  const handleHolidays = (event) => {
-    setHolidays(event.target.checked);
-  };
-
-  const handleweekoffdays = (event) => {
-    setWeekoffdays(event.target.checked);
-  };
+  const handleDrawerToggle = () => {setDrawerOpen(!drawerOpen);};
+  const handleNameChange = (event) => {setShowName(event.target.checked);};
+  const handlecompanynamechange = (event) => {setshowcompanyname(event.target.checked);};
+  const handlemonthname = (event) => {setshowmonth(event.target.checked);};
+  const handlerollno = (event) => {setRollno(event.target.checked);};
+  const handlemonthofpay = (event) => {setMonthofpay(event.target.checked);};
+  const handledob = (event) => {setDateofbirth(event.target.checked);};
+  const handledoj = (event) => {setDateofjoining(event.target.checked);};
+  const handlecalcdays = (event) => {setCalcdays(event.target.checked);}; 
+  const handlepaiddays = (event) => {setPaiddays(event.target.checked);};
+  const handleprsdays = (event) => {setPrsdays(event.target.checked);};
+  const handleAbsdays = (event) => {setAbsentdays(event.target.checked);};
+  const handleleavedays = (event) => {setLeavedays(event.target.checked);};
+  const handleHolidays = (event) => {setHolidays(event.target.checked);};
+  const handleweekoffdays = (event) => {setWeekoffdays(event.target.checked);};
 
   const styleobj = {
     header: {
@@ -158,25 +104,82 @@ export default function PaySlipTemplate(props) {
       marginTop: "16px",
     },
   };
-  return (
-    <div style={styleobj.container}>
-      <IconButton onClick={handleDrawerToggle} style={{ marginLeft: "1200px" }}>
-        <Typography
-          variant="subtitle-1"
-          color={"black"}
-          style={{ fontSize: "18px" }}>
-          Preference
-        </Typography>
-        <MenuIcon color="blue" style={{ marginLeft: "5px" }} />
-      </IconButton>
 
-      <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerToggle}>
-        <Box width={250} role="presentation">
-          <Box mb={2} mt={2}>
-            <Typography variant="subtitle1" align="left" mt={1}>
-              Choose Headers
-            </Typography>
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
+  const renderRow = (
+    allowance,
+    valueMR,
+    valueCM,
+    valueTotal,
+    deduction,
+    deductionTotal
+  ) => {
+    if (
+      valueMR > 0 ||
+      valueCM > 0 ||
+      valueTotal > 0 ||
+      deduction > 0 ||
+      deductionTotal > 0
+    ) {
+      return (
+        <TableRow>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{allowance}</strong>
+          </TableCell>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{valueMR}</strong>
+          </TableCell>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{valueCM}</strong>
+          </TableCell>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{valueTotal}</strong>
+          </TableCell>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{deduction}</strong>
+          </TableCell>
+          <TableCell style={styleobj.tablecell}>
+            <strong>{deductionTotal}</strong>
+          </TableCell>
+        </TableRow>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <>   
+    <div style={styleobj.container} ref={targetRef}>
+       <Box display="flex" justifyContent="flex-end">
+      <IconButton onClick={handleDrawerToggle} color="primary">
+          <Typography
+            variant="subtitle1"
+            color="textPrimary"
+            style={{ fontSize: "18px" }}
+          >
+            Preferences
+          </Typography>
+          <MenuIcon style={{ marginLeft: "5px" }} />
+        </IconButton>
+        </Box>
+        <Drawer
+          anchor="right"
+          open={drawerOpen}
+          onClose={handleDrawerToggle}
+          PaperProps={{
+            sx: {
+              width: 280,
+              padding: 2,
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: "#f5f5f5", // Light background for better contrast
+            },
+          }}
+        >
+         <Typography variant="h6" gutterBottom>
+            Choose Headers
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Box display="flex" flexDirection="column" alignItems="flex-start">
               <FormControlLabel
                 control={
                   <Checkbox
@@ -187,16 +190,7 @@ export default function PaySlipTemplate(props) {
                 }
                 label="Name"
               />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showDesignation}
-                    onChange={handleDesignationChange}
-                    name="showDesignation"
-                  />
-                }
-                label="Designation"
-              />
+
               <FormControlLabel
                 control={
                   <Checkbox
@@ -228,28 +222,6 @@ export default function PaySlipTemplate(props) {
                   />
                 }
                 label="Rollno"
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={location1}
-                    onChange={handlelocation}
-                    name="showlocation"
-                  />
-                }
-                label="Location"
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={fathersn}
-                    onChange={handlefn}
-                    name="showfathersn"
-                  />
-                }
-                label="Fathers Name"
               />
 
               <FormControlLabel
@@ -361,8 +333,8 @@ export default function PaySlipTemplate(props) {
                 label="Weekoffdays"
               />
             </Box>
-          </Box>
-        </Box>
+            <Divider sx={{ mb: 2 }} />
+       
       </Drawer>
 
       <TableContainer component={Paper} style={styleobj.container}>
@@ -374,7 +346,7 @@ export default function PaySlipTemplate(props) {
           )}
           {showmonth && (
             <Typography variant="h6" align="center" gutterBottom>
-              Payslip for the month of {props.Month}, 2012
+              Payslip for the month of {props.Month}, 2024
             </Typography>
           )}
         </Box>
@@ -397,30 +369,6 @@ export default function PaySlipTemplate(props) {
             </Grid>{" "}
             <Grid item xs={4}>
               {" "}
-              {fathersn && (
-                <Typography variant="body1">
-                  <strong>Fathers Name: {props.FathersName}</strong>{" "}
-                </Typography>
-              )}{" "}
-            </Grid>{" "}
-            <Grid item xs={4}>
-              {" "}
-              {showDesignation && (
-                <Typography variant="body1">
-                  <strong>Designation: {props.Designation}</strong>{" "}
-                </Typography>
-              )}{" "}
-            </Grid>{" "}
-            <Grid item xs={4}>
-              {" "}
-              {location1 && (
-                <Typography variant="body1">
-                  <strong>Location: {props.Location}</strong>{" "}
-                </Typography>
-              )}{" "}
-            </Grid>{" "}
-            <Grid item xs={4}>
-              {" "}
               {monthofpay && (
                 <Typography variant="body1">
                   <strong>Month Of Pay: {props.MonthOfPay}</strong>{" "}
@@ -431,7 +379,10 @@ export default function PaySlipTemplate(props) {
               {" "}
               {dateofbirth && (
                 <Typography variant="body1">
-                  <strong> Date Of Birth: {props.DateOfBirth}</strong>{" "}
+                  <strong>
+                    {" "}
+                    Date Of Birth: {formatDate(props.DateOfBirth)}
+                  </strong>{" "}
                 </Typography>
               )}{" "}
             </Grid>{" "}
@@ -439,7 +390,7 @@ export default function PaySlipTemplate(props) {
               {" "}
               {dateofjoining && (
                 <Typography variant="body1">
-                  <strong>Date Of Joining: {props.DateOfJoining}</strong>{" "}
+                  <strong>Work From Home: {props.WorkFromHome}</strong>{" "}
                 </Typography>
               )}{" "}
             </Grid>{" "}
@@ -502,20 +453,18 @@ export default function PaySlipTemplate(props) {
         <Table
           size="small"
           aria-label="earnings and deductions"
-          style={styleobj.table}>
+          style={styleobj.table}
+        >
           <TableHead style={styleobj.tablehead}>
             <TableRow style={styleobj.tablerow}>
               <TableCell style={styleobj.tablecell}>
-                <strong> Earnings</strong>
+                <strong>Earnings</strong>
               </TableCell>
               <TableCell style={styleobj.tablecell}>
                 <strong>Monthly Rate</strong>
               </TableCell>
               <TableCell style={styleobj.tablecell}>
                 <strong>Current Month</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Arrears</strong>
               </TableCell>
               <TableCell style={styleobj.tablecell}>
                 <strong>Total</strong>
@@ -529,259 +478,96 @@ export default function PaySlipTemplate(props) {
             </TableRow>
           </TableHead>
           <TableBody style={styleobj.tablebody}>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Basic</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.BasicMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.BasicCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.BasicArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.BasicTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>PF</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.PTtotal}</strong>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>House Rent Allowance</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.ConveyanceAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.ConveyanceAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.ConveyanceAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.ConveyanceAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>ESI</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.GITotal}</strong>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 2</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.HouseRentAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.HouseRentAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.HouseRentAllArrears} </strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.HouseRentAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 2</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.PFtotal}</strong>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 3</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.FixedAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.FixedAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.FixedAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.FixedAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 3</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.ITtotal}</strong>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 4</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.LeaveTAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.LeaveTAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.LeaveTAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.LeaveTAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 4</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 5</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.MedicalAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.MedicalAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.MedicalAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.MedicalAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 5</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 6</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 6</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 7</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 7</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 8</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 8</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 9</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 9</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
-
-            <TableRow>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Allowance 10</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllMR}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllCM}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllArrears}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>{props.SuperAllTotal}</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}>
-                <strong>Deduction 10</strong>
-              </TableCell>
-              <TableCell style={styleobj.tablecell}></TableCell>
-            </TableRow>
+            {renderRow(
+              props.Allowance1,
+              props.Value1MR,
+              props.Value1CM,
+              props.Value1total,
+              props.Deduction1,
+              props.Deduction1total
+            )}
+            {renderRow(
+              props.Allowance2,
+              props.Value2MR,
+              props.Value2CM,
+              props.Value2total,
+              props.Deduction2,
+              props.Deduction2total
+            )}
+            {renderRow(
+              props.Allowance3,
+              props.Value3MR,
+              props.Value3CM,
+              props.Value3total,
+              props.Deduction3,
+              props.Deduction3total
+            )}
+            {renderRow(
+              props.Allowance4,
+              props.Value4MR,
+              props.Value4CM,
+              props.Value4total,
+              props.Deduction4,
+              props.Deduction4total
+            )}
+            {renderRow(
+              props.Allowance5,
+              props.Value5MR,
+              props.Value5CM,
+              props.Value5total,
+              props.Deduction5,
+              props.Deduction5total
+            )}
+            {renderRow(
+              props.Allowance6,
+              props.Value6MR,
+              props.Value6CM,
+              props.Value6total,
+              props.Deduction6,
+              props.Deduction6total
+            )}
+            {renderRow(
+              props.Allowance7,
+              props.Value7MR,
+              props.Value7CM,
+              props.Value7total,
+              props.Deduction7,
+              props.Deduction7total
+            )}
+            {renderRow(
+              props.Allowance8,
+              props.Value8MR,
+              props.Value8CM,
+              props.Value8total,
+              props.Deduction8,
+              props.Deduction8total
+            )}
+            {renderRow(
+              props.Allowance9,
+              props.Value9MR,
+              props.Value9CM,
+              props.Value9total,
+              props.Deduction9,
+              props.Deduction9total
+            )}
+            {renderRow(
+              props.Allowance10,
+              props.Value10MR,
+              props.Value10CM,
+              props.Value10total,
+              props.Deduction10,
+              props.Deduction10total
+            )}
 
             <TableRow style={styleobj.tablerow}>
-              <TableCell>
-                <strong>Total</strong>
-              </TableCell>
+              <TableCell></TableCell>
               <TableCell></TableCell>
               <TableCell></TableCell>
               <TableCell>
                 <strong>Gross Earnings</strong>
               </TableCell>
               <TableCell>
-                <strong>{props.GrossEarnings}</strong>
+                <strong>₹ {props.GrossEarnings}</strong>
               </TableCell>
               <TableCell></TableCell>
             </TableRow>
@@ -790,30 +576,37 @@ export default function PaySlipTemplate(props) {
                 <strong>Net Salary Payable</strong>
               </TableCell>
               <TableCell>
-                <strong>{props.NetSalary}</strong>
+                <strong>₹ {props.NetSalaryPayable}</strong>
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={8}>
                 <strong>
-                  {" "}
-                  Net Salary Payable (In words): Seventeen Thousand Eight
-                  Hundred Only
+                  Net Salary Payable (In words): ₹{" "}
+                  {props.NetSalaryPayableInWords}
                 </strong>
               </TableCell>
             </TableRow>
           </TableBody>
         </Table>
-        <Typography variant="body2" align="center" style={styleobj.typo}>
-          //{" "}
-          <strong>
-            // *Net Salary payable also subject to deductions as per Income Tax
-            Law //{" "}
-          </strong>
-          //{" "}
-        </Typography>
-        //{" "}
       </TableContainer>
     </div>
+    <Box
+  display="flex"
+  justifyContent="center"
+  alignItems="center"
+  mt={2}
+>
+<Button
+    variant="contained"
+    onClick={() => generatePDF(targetRef, { filename: "PayTabular.pdf" })}
+    size="small"
+    style={{ marginLeft: "5px" }}
+  >
+    Download Pdf
+  </Button>
+  </Box>
+    </>
+
   );
 }

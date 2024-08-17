@@ -45,8 +45,8 @@ export default function HomePage() {
         { text: "Attendance", icon: <TodayIcon />, onclick : () => navigate('/Attendance') },
         { text: "Leave", icon: <AssignmentIcon /> },
         { text: "Shift", icon: <AccessTimeIcon /> },
-        { text: "Payslip", icon: <ReceiptIcon /> },
-        { text: "Slabs", icon: <BookIcon />, onclick : () => navigate('/SlabTemplate') }, 
+        { text: "Payslip", icon: <ReceiptIcon />, onclick : () => navigate('/payslipgenerator') },
+        { text: "Slabs", icon: <BookIcon />, onclick : () => navigate('/SlabTemplateEmp') }, 
         { text: "Employee", icon: <PeopleIcon /> },
       ];
       
