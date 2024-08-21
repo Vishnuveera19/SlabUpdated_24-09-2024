@@ -38,6 +38,7 @@
     "jspdf": "^2.5.1",
     "number-to-words": "^1.2.4",
     "react": "^18.2.0",
+    "react-confirm-alert": "^3.0.6",
     "react-data-grid": "^7.0.0-beta.44",
     "react-dom": "^18.2.0",
     "react-json-to-table": "^0.1.7",

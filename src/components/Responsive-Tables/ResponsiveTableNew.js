@@ -9,7 +9,16 @@ import { TextField } from '@mui/material';
 import { format, addMinutes } from 'date-fns';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
-import { PAYMCATEGORY } from '../../serverconfiguration/controllers';
+import { PAYMCATEGORY, REPORTS, SAVE } from '../../serverconfiguration/controllers';
+import { useEffect } from 'react';
+import { ServerConfig } from '../../serverconfiguration/serverconfig';
+import { getRequest, postRequest } from '../../serverconfiguration/requestcomp';
+import {Grid, Select} from '@mui/material';
+import { Label } from '@material-ui/icons';
+import { confirmAlert } from 'react-confirm-alert'; 
+import 'react-confirm-alert/src/react-confirm-alert.css'; 
+import { useNavigate } from 'react-router-dom';
+
 
 
 // Utility function to create a Date object with specific time
@@ -38,6 +47,7 @@ const TimePickerCell = ({ value, onChange, disabled }) => {
         views={['hours', 'minutes']}
         inputFormat="HH:mm"
         mask="__:__"
+        timeSteps={{minutes: 1}}
         sx={{ width: '100%' }}
         disabled={disabled}
       />
@@ -82,14 +92,18 @@ export default function OverTimeGrid() {
   });
   const [isEditable, setIsEditable] = useState(true);
   const[Category, setcategory] = useState([])
+  const[vCategoryName, setvCategoryName] = useState("")
+  const[OtslabNew, setotslabnew] = useState([])
   
   useEffect(() => {
     async function getData() {
       const data = await getRequest(ServerConfig.url, PAYMCATEGORY);
       setcategory(data.data);
+      console.log("data", data)
      
     }
     getData();
+    console.log("category", Category)
   }, []);
 
   // Handler for updating a row's value
@@ -122,15 +136,70 @@ export default function OverTimeGrid() {
     setRows([...rows, newRow]);
   };
 
-  const saveData = () => {
-    console.log('Data saved:', rows.map(row => ({
-      ...row,
-      otFromDuration: format(row.otFromDuration, 'HH:mm'),
-      otToDuration: format(row.otToDuration, 'HH:mm')
-    })));
-    setIsEditable(false);
+  const navigate = useNavigate();
+  
+  const saveData = async () => {
+    try {
+      // Prepare the formatted rows
+      const formattedRows = rows.map(row => 
+        `(1, 2, '${vCategoryName}', ${row.id}, '${format(row.otFromDuration, 'HH:mm:ss')}', '${format(row.otToDuration, 'HH:mm:ss')}', '${format(row.otHours,'HH:mm:ss')}', ${row.otRate})`
+      ).join(',');
+  
+      // Construct the SQL query
+      const query = `INSERT INTO [dbo].[OtslabNew]([pn_companyid], [pn_branchid], [Category_Name], [SlabID], [Ot_From_Duration], [Ot_To_Duration], [Ot_Hrs], [Ot_Rate]) VALUES ${formattedRows}`;
+  
+      // Log the query for debugging
+      console.log("Query:", JSON.stringify({ query }));
+  
+      // Set the table to non-editable
+      setIsEditable(false);
+  
+      // Execute the post request
+      const response = await postRequest(ServerConfig.url, SAVE, { query });
+  
+      // Check if the response status is 200 (OK)
+      if (response.status === 200) {
+        confirmAlert({
+          title: `Data Saved Successfully for ${vCategoryName}`,
+          message: 'Your data has been saved successfully.',
+          buttons: [
+            {
+              label: 'OK',
+              onClick: () => {
+                // You can add further actions here if needed
+              }
+            }
+          ]
+        });
+      } else {
+        alert('Failed to save data');
+      }
+    } catch (error) {
+      // Handle errors
+      console.error('Error saving data:', error);
+      alert('An error occurred while saving data');
+    }
   };
+  
 
+  const fetchdata = (selectedCategory) => {  
+    postRequest(ServerConfig.url, REPORTS, {
+      "query": `select * from OtslabNew where Category_Name = '${selectedCategory}'`
+    })
+    .then(response => {
+      // Assuming the response data is in response.data
+      console.log("Retrieved Data:", response.data);
+    })
+    .catch(error => {
+      console.error("Error fetching data:", error);
+    });
+  }
+  
+  
+
+  
+  
+  
   const handleEdit = () => {
     setIsEditable(true);
   };
@@ -262,6 +331,45 @@ export default function OverTimeGrid() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 200, width: '100%' }}>
+    <Grid item 
+  xs={12} 
+  sm={12} 
+  style={{ display: 'flex', justifyContent: 'left', marginBottom: '20px' }} >
+      <div style={{width: "200px", position: "relative"}}>
+        <label
+         htmlFor='vCategoryName'
+         style={{
+          position: "absolute",
+          top:"-10px",
+          left:"10px",
+          backgroundColor:"white",
+          padding:"0 4px",
+          zIndex: 1
+         }}
+         >
+          Choose Category
+          </label>
+          <select
+  id='vCategoryName'
+  name='vCategoryName'
+  onChange={(e) => {  
+    const selectedCategory = e.target.value;
+    setvCategoryName(selectedCategory); 
+    fetchdata(selectedCategory); 
+  }}
+  style={{ height: "50px", width: "100%", padding: "10px" }}
+>
+  <option value="">Select</option>
+  <option value="All Employees">All Employees</option>
+  {Category.map((e) => (
+    <option key={e.vCategoryName} value={e.vCategoryName}>
+      {e.vCategoryName}
+    </option>
+  ))}
+</select>
+      </div>
+
+    </Grid>
       <div style={{ flex: 1 }}>
         <StyledDataGrid
           rows={rows}
