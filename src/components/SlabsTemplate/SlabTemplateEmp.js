@@ -7,6 +7,7 @@ import Navbar from '../Home Page/Navbar';
 import OverTime from '../Responsive-Tables/ResponsiveTable';
 import OverTimeGrid from '../Responsive-Tables/ResponsiveTableNew';
 import PtGrid from '../Responsive-Tables/Proftaxgrid';
+import AttendanceBonusSetup from '../Responsive-Tables/AttendanceBonus';
 
 
 
@@ -57,7 +58,7 @@ const sampleTables = {
     apply: <PtGrid />,
     pending: <OverTimeGrid/>,
     history: <OverTimeGrid/>,
-    AttBonus: <OverTimeGrid/>,
+    AttBonus: <AttendanceBonusSetup/>,
 };
 
 const SlabTemplateEmp = () => {

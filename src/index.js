@@ -223,7 +223,11 @@ import DataGridComp from "./components/Responsive-Tables/ResponsiveTableNew";
 import BasicEditingGrid from "./components/Responsive-Tables/ResponsiveTableNew";
 import OverTime from "./components/Responsive-Tables/ResponsiveTableNew";
 import OverTimeGrid from "./components/Responsive-Tables/ResponsiveTableNew";
-
+import AttendanceBonusSetup from "./components/Responsive-Tables/AttendanceBonus";
+import EarnMaster from "./components/EarndeductMaster/EarnMaster";
+import EarnDeductValueMasters from "./components/Masters/EarnDeductValueMasters";
+// import Menu from "./components/Menu/Menu"
+// import ButtonCSS from "./components/Buttons/Button";
 const store = createStore(entityReducer);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -237,6 +241,9 @@ root.render(
 
       <Routes>
         <Route path="/" element={<App />}>
+        {/* <Route path="/EarnDeductMasters" element={<EarnMaster/>}/> */}
+        {/* <Route path="/ButtonCSS" element={<ButtonCSS />} /> */}
+          {/* <Route path="/Menu" element={<Menu />} /> */}
           <Route path="/loginemployee" element={<LoginOthers />} />
           <Route path="/HomePage" element={<HomePage/>}></Route>
           <Route path="/Masters" element={<MastersTemplate />} />
@@ -247,7 +254,8 @@ root.render(
           <Route path="/DesignationMasters" element={<DesignationMasters/>}/>
           <Route path="/ShiftMasters" element={<ShiftMasters/>}/>
           <Route path="/EarnDeductMasters" element={<EarnDeductMasters/>}/>
-          <Route path="/EarnDeductMasters" element={<EarnDeductMasters/>}/>
+          <Route path="/EarnDeductValueMaters" element={<EarnDeductValueMasters/>}/>
+          {/* <Route path="/EarnDeductMasters" element={<EarnDeductMasters/>}/> */}
           <Route path="/Group" element={<GroupUi/>}/>
           <Route path="/Group/addinfos" element={<AddInfos/>}/>
           <Route path="/EmployeeShift" element={<GroupShift/>}/>
@@ -272,6 +280,7 @@ root.render(
              <Route path="/payslipgenerator/payslipmonthly" element={<Payslipmonthly />}></Route>
              <Route path="/payslipelegant" element={<Payslipelegant />}></Route>
              <Route path="/classic" element={<PayslipNewFormat/>}></Route>
+             <Route path="/AttendanceBonus" element={<AttendanceBonusSetup />} />
           {/* <Route path="/layout" element={<Layoutcomp />} />
           <Route path="/att" element={<BasicDateCalendar />} />
           <Route path="/home" element={<ServiceCard />}></Route>
