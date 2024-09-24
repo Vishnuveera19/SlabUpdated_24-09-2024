@@ -11,13 +11,14 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useState, useEffect } from "react";
-import { PAYMPAYBILL } from "../../serverconfiguration/controllers";
+import { PAYMPAYBILL, REPORTS } from "../../serverconfiguration/controllers";
 import { getRequest, postRequest } from "../../serverconfiguration/requestcomp";
 import { InputLabel } from "@mui/material";
 import { ServerConfig } from "../../serverconfiguration/serverconfig";
 import { useNavigate } from "react-router-dom";
 
 export default function PayslipGenerator() {
+  const [isloggedin, setIsloggedin] = useState(sessionStorage.getItem("user"));
   const [paympaybills, setPaymPayBills] = useState([]);
   const [pnEmployeeId, setPnEmployeeId] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
@@ -29,15 +30,19 @@ export default function PayslipGenerator() {
 
   useEffect(() => {
     async function getData() {
-      const data = await getRequest(ServerConfig.url, PAYMPAYBILL);
+      const data = await postRequest(ServerConfig.url, REPORTS, {
+        query: `select * from paym_paybill where EmployeeCode = '${isloggedin}'`,
+      });
+      console.log();
       setPaymPayBills(data.data);
     }
     getData();
-  }, []);
+    console.log("Paympaybill", paympaybills);
+  }, [isloggedin]);
 
   const handlesave = () => {
     const paym = paympaybills.filter(
-      (e) => e.employeeCode == employeeCode && e.dDate == dDate
+      (e) => e.EmployeeCode == employeeCode && e.d_date == dDate
     );
     navigate("payslipmonthly", {
       state: {
@@ -51,18 +56,22 @@ export default function PayslipGenerator() {
       <Grid style={{ padding: "80px 5px0 5px" }}>
         <Card style={{ maxWidth: 600, margin: "0 auto" }}>
           <CardContent>
-            <Typography variant="h5" color="S- Light" align="center" gutterBottom>
+            <Typography
+              variant="h5"
+              color="S- Light"
+              align="center"
+              gutterBottom
+            >
               Generate Payslip
             </Typography>
             <form>
-            <Grid
-  container
-  spacing={2}
-  justifyContent="center"
-  alignItems="center"
-  direction="column"
->
-
+              <Grid
+                container
+                spacing={2}
+                justifyContent="center"
+                alignItems="center"
+                direction="column"
+              >
                 <Grid item xs={12} sm={12}>
                   <div style={{ width: "300px", position: "relative" }}>
                     <label
@@ -86,8 +95,8 @@ export default function PayslipGenerator() {
                     >
                       <option value="">Select</option>
                       {paympaybills.map((e) => (
-                        <option key={e.pnEmployeeId} value={e.pnEmployeeId}>
-                          {e.pnEmployeeId}
+                        <option key={e.pn_EmployeeID} value={e.pn_EmployeeID}>
+                          {e.pn_EmployeeID}
                         </option>
                       ))}
                     </select>
@@ -117,9 +126,9 @@ export default function PayslipGenerator() {
                     >
                       <option value="">Select</option>
                       {paympaybills
-                        .filter((e) => e.pnEmployeeId == pnEmployeeId)
+                        .filter((e) => e.pn_EmployeeID == pnEmployeeId)
                         .map((e) => (
-                          <option>{e.employeeCode}</option>
+                          <option>{e.EmployeeCode}</option>
                         ))}
                     </select>
                   </div>
@@ -150,11 +159,16 @@ export default function PayslipGenerator() {
                       {paympaybills
                         .filter(
                           (e) =>
-                            e.pnEmployeeId == pnEmployeeId &&
-                            e.employeeCode == employeeCode
+                            e.pn_EmployeeID == pnEmployeeId &&
+                            e.EmployeeCode == employeeCode
                         )
                         .map((e) => (
-                          <option>{e.dDate}</option>
+                          <option key={e.d_date} value={e.d_date}>
+                            {new Date(e.d_date).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                            })}
+                          </option>
                         ))}
                     </select>
                   </div>

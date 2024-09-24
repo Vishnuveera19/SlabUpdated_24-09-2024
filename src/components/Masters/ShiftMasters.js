@@ -44,7 +44,6 @@ function ShiftMasters() {
       },
     ]);
   };
-
   const handleChange = (index, field, value) => {
     setShifts(
       shifts.map((shift, i) => {
@@ -55,7 +54,6 @@ function ShiftMasters() {
       })
     );
   };
-
   return (
     <Grid item xs={12}>
         <div style={{ backgroundColor: "#fff" }}>
