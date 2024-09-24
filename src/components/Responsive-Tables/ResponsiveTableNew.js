@@ -106,7 +106,7 @@ export default function OverTimeGrid() {
   });
   const [isEditable, setIsEditable] = useState(true);
   const[Category, setcategory] = useState([])
-  const[vCategoryName, setvCategoryName] = useState("")
+  const[v_CategoryName, setv_CategoryName] = useState("")
   const [retrievedRows, setRetrievedRows] = useState([]);
   const [showFirstGrid, setShowFirstGrid] = useState(true);
   const [editableRowId, setEditableRowId] = useState(null);
@@ -121,22 +121,44 @@ export default function OverTimeGrid() {
   
   useEffect(() => {
     async function getData() {
-      const data = await getRequest(ServerConfig.url, PAYMCATEGORY);
-      setcategory(data.data);
-      const data1 = await postRequest(ServerConfig.url, REPORTS, {
-        "query" : `select * from paym_Branch where Branch_User_Id = '${isloggedin}'`
-      })
-      setbranch(data1.data)
-      console.log("data", data1)
-      if (data.data.length > 0) {
-        const defaultCategory = data.data[0].vCategoryName;
-        setvCategoryName(defaultCategory);
-        fetchdata(defaultCategory);
+      try {
+        // Fetch branch data
+        const data1 = await postRequest(ServerConfig.url, REPORTS, {
+          "query": `select * from paym_Branch where Branch_User_Id = '${isloggedin}'`
+        });
+        
+        setbranch(data1.data);
+        console.log("Branch data", data1.data);
+  
+        // Ensure Branch is not empty and pn_BranchID exists
+        if (data1.data.length > 0 && data1.data[0].pn_BranchID) {
+          const branchID = data1.data[0].pn_BranchID;
+  
+          // Fetch category data
+          const data = await postRequest(ServerConfig.url, REPORTS, {
+            "query": `select * from paym_Category where BranchID = ${branchID}`
+          });
+  
+          setcategory(data.data);
+          console.log("Category data", data.data);
+  
+          // Set default category if available
+          if (data.data.length > 0) {
+            const defaultCategory = data.data[0].v_CategoryName;
+            setv_CategoryName(defaultCategory);
+            fetchdata(defaultCategory);
+          }
+        } else {
+          console.log("No valid branch data found.");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     }
+  
     getData();
-    console.log("Branch", Branch)
-  }, []);
+  }, [isloggedin]); // Use isloggedin as a dependency instead of Branch
+  
 
   // Handler for updating a row's value
   const handleRowUpdate = (id, field, value) => {
@@ -174,7 +196,7 @@ export default function OverTimeGrid() {
     try {
       // Prepare the formatted rows
       const formattedRows = rows.map(row => 
-        `(${Branch[0].pn_CompanyID}, ${Branch[0].pn_BranchID}, '${vCategoryName}', ${row.id}, '${format(row.otFromDuration, 'HH:mm:ss')}', '${format(row.otToDuration, 'HH:mm:ss')}', '${format(row.otHours,'HH:mm:ss')}', ${row.otRate})`
+        `(${Branch[0].pn_CompanyID}, ${Branch[0].pn_BranchID}, '${v_CategoryName}', ${row.id}, '${format(row.otFromDuration, 'HH:mm:ss')}', '${format(row.otToDuration, 'HH:mm:ss')}', '${format(row.otHours,'HH:mm:ss')}', ${row.otRate})`
       ).join(',');
   
       // Construct the SQL query
@@ -192,14 +214,14 @@ export default function OverTimeGrid() {
       // Check if the response status is 200 (OK)
       if (response.status === 200) {
         confirmAlert({
-          title: `Data Saved Successfully for ${vCategoryName}`,
+          title: `Data Saved Successfully for ${v_CategoryName}`,
           message: 'Your data has been saved successfully.',
           buttons: [
             {
               label: 'OK',
               onClick: () => {
                 setShowFirstGrid(false); 
-                fetchdata(vCategoryName);
+                fetchdata(v_CategoryName);
                 setRows(initialRows)
                 setIsEditable(true)
                 // You can add further actions here if needed
@@ -375,14 +397,14 @@ const handleRowUpdateForRetrievedGrid = (id, field, value) => {
     <div style={{ display: 'flex', flexDirection: 'column', height: 200, width: '100%' }}>
     <Grid item xs={12} sm={12} style={{ display: 'flex', justifyContent: 'left', marginBottom: '20px' }} >
       <div style={{width: "200px", position: "relative"}}>
-        <label htmlFor='vCategoryName' style={{ position: "absolute", top:"-10px", left:"10px", backgroundColor:"white", padding:"0 4px", zIndex: 1 }}>
+        <label htmlFor='v_CategoryName' style={{ position: "absolute", top:"-10px", left:"10px", backgroundColor:"white", padding:"0 4px", zIndex: 1 }}>
           Choose Category
           </label>
-          <select id='vCategoryName' name='vCategoryName' onChange={(e) => {   const selectedCategory = e.target.value; setvCategoryName(selectedCategory);  fetchdata(selectedCategory);  }} style={{ height: "50px", width: "100%", padding: "10px" }}>
+          <select id='v_CategoryName' name='v_CategoryName' onChange={(e) => {   const selectedCategory = e.target.value; setv_CategoryName(selectedCategory);  fetchdata(selectedCategory);  }} style={{ height: "50px", width: "100%", padding: "10px" }}>
   {/* <option value="">Select</option> */}
   {Category.map((e) => (
-    <option key={e.vCategoryName} value={e.vCategoryName}>
-      {e.vCategoryName}
+    <option key={e.v_CategoryName} value={e.v_CategoryName}>
+      {e.v_CategoryName}
     </option>
   ))}
 </select>

@@ -47,14 +47,14 @@ const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
   
 const AttendanceBonusSetup = () => {
  
-  const [category, setCategory] = useState([]);
+  const [category, setcategory] = useState([]);
   const [rows, setRows] = React.useState(initialRows);
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 5,
     page: 0
   });
   const [retrievedRows, setRetrievedRows] = useState([]);
-  const [vCategoryName, setvCategoryName] = useState("");
+  const [v_CategoryName, setv_CategoryName] = useState("");
   const [isEditable, setIsEditable] = useState(true);
   const[Branch, setbranch] = useState([])
   const [isloggedin, setisloggedin] = useState(sessionStorage.getItem("user"))
@@ -78,7 +78,7 @@ const AttendanceBonusSetup = () => {
     try {
       // Prepare the formatted rows
       const formattedRows = rows.map(row => 
-        `(${Branch[0].pn_CompanyID}, ${Branch[0].pn_BranchID}, '${vCategoryName}', ${row.id}, '${row.AttBonusType}', ${row.AttBonusValue})`
+        `(${Branch[0].pn_CompanyID}, ${Branch[0].pn_BranchID}, '${v_CategoryName}', ${row.id}, '${row.AttBonusType}', ${row.AttBonusValue})`
       ).join(',');
   
       // Construct the SQL query
@@ -96,14 +96,14 @@ const AttendanceBonusSetup = () => {
       // Check if the response status is 200 (OK)
       if (response.status === 200) {
         confirmAlert({
-          title: `Data Saved Successfully for ${vCategoryName}`,
+          title: `Data Saved Successfully for ${v_CategoryName}`,
           message: 'Your data has been saved successfully.',
           buttons: [
             {
               label: 'OK',
               onClick: () => {
                 setShowFirstGrid(false); 
-                fetchdata(vCategoryName);
+                fetchdata(v_CategoryName);
                 setRows(initialRows)
                 setIsEditable(true)
               }
@@ -239,25 +239,46 @@ const handleRowUpdateForRetrievedGrid = (id, field, value) => {
 };
 
 
-  useEffect(() => {
-    async function getData() {
-      const data = await getRequest(ServerConfig.url, PAYMCATEGORY);
-      setCategory(data.data);
+  
+useEffect(() => {
+  async function getData() {
+    try {
+      // Fetch branch data
       const data1 = await postRequest(ServerConfig.url, REPORTS, {
-        "query" : `select * from paym_Branch where Branch_User_Id = '${isloggedin}'`
-      })
-      setbranch(data1.data)
-      console.log("data", data1)
-      if (data.data.length > 0) {
-        const defaultCategory = data.data[0].vCategoryName;
-        setvCategoryName(defaultCategory);
-        fetchdata(defaultCategory);
+        "query": `select * from paym_Branch where Branch_User_Id = '${isloggedin}'`
+      });
+      
+      setbranch(data1.data);
+      console.log("Branch data", data1.data);
+
+      // Ensure Branch is not empty and pn_BranchID exists
+      if (data1.data.length > 0 && data1.data[0].pn_BranchID) {
+        const branchID = data1.data[0].pn_BranchID;
+
+        // Fetch category data
+        const data = await postRequest(ServerConfig.url, REPORTS, {
+          "query": `select * from paym_Category where BranchID = ${branchID}`
+        });
+
+        setcategory(data.data);
+        console.log("Category data", data.data);
+
+        // Set default category if available
+        if (data.data.length > 0) {
+          const defaultCategory = data.data[0].v_CategoryName;
+          setv_CategoryName(defaultCategory);
+          fetchdata(defaultCategory);
+        }
+      } else {
+        console.log("No valid branch data found.");
       }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-    
-    getData();
-    console.log("Branch", Branch)
-  }, []);
+  }
+
+  getData();
+}, [isloggedin]); // Use isloggedin as a dependency instead of Branch
 
 
   const columns = [
@@ -288,21 +309,21 @@ const handleRowUpdateForRetrievedGrid = (id, field, value) => {
       <Grid container spacing={4}>
       <Grid item xs={12} sm={12} style={{ display: 'flex', justifyContent: 'left', marginBottom: '20px' }} >
       <div style={{width: "200px", position: "relative"}}>
-  <label htmlFor='vCategoryName' style={{ position: "absolute", top:"-10px", left:"10px", backgroundColor:"white", padding:"0 4px", zIndex: 1 }}>
+  <label htmlFor='v_CategoryName' style={{ position: "absolute", top:"-10px", left:"10px", backgroundColor:"white", padding:"0 4px", zIndex: 1 }}>
     Choose Category
   </label>
-  <select id='vCategoryName' name='vCategoryName' 
-    value={vCategoryName} // set the value to the state variable
+  <select id='v_CategoryName' name='v_CategoryName' 
+    value={v_CategoryName} // set the value to the state variable
     onChange={(e) => { 
       const selectedCategory = e.target.value; 
-      setvCategoryName(selectedCategory);  
+      setv_CategoryName(selectedCategory);  
       fetchdata(selectedCategory);  
     }} 
     style={{ height: "50px", width: "100%", padding: "10px" }}
   >
     {category.map((e, index) => (
-      <option key={e.vCategoryName} value={e.vCategoryName}>
-        {e.vCategoryName}
+      <option key={e.v_CategoryName} value={e.v_CategoryName}>
+        {e.v_CategoryName}
       </option>
     ))}
   </select>
